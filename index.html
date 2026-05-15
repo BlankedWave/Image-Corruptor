@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport tag for mobile responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMG_CORRUPTOR_V2.1.exe</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts for Retro/Terminal look -->
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --term-green: #39ff14;
+            --term-red: #ff3333;
+            --term-dark: #0a0a0a;
+            --term-border: #1a4a1a;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: var(--term-dark);
+            color: var(--term-green);
+            overflow-x: hidden;
+            /* Extra padding at the bottom so the fixed action bar doesn't overlap content */
+            padding-bottom: 5rem; 
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--term-dark); border-left: 1px solid var(--term-border); }
+        ::-webkit-scrollbar-thumb { background: var(--term-green); }
+
+        /* CRT Screen Flicker */
+        .crt-flicker {
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.95; }
+            50% { opacity: 0.85; }
+            100% { opacity: 0.95; }
+        }
+
+        /* Custom Range Sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px; width: 10px; /* Made slightly larger for easier mobile touch */
+            background: var(--term-green);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 5px var(--term-green);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 6px;
+            cursor: pointer;
+            background: #222;
+            border: 1px solid #444;
+        }
+        input[type=range]:focus { outline: none; }
+
+        /* Glitch Text Effect for Title */
+        .glitch-text { position: relative; }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--term-dark);
+        }
+        .glitch-text::before {
+            left: 2px; text-shadow: -1px 0 red; clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 2s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            left: -2px; text-shadow: -1px 0 blue; clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 31px, 0); }
+            20% { clip: rect(62px, 9999px, 16px, 0); }
+            40% { clip: rect(34px, 9999px, 88px, 0); }
+            60% { clip: rect(98px, 9999px, 51px, 0); }
+            80% { clip: rect(14px, 9999px, 73px, 0); }
+            100% { clip: rect(45px, 9999px, 29px, 0); }
+        }
+
+        /* Canvas Wrapper */
+        .canvas-container {
+            position: relative;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        #preview {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            image-rendering: pixelated; 
+        }
+
+        /* UI Panel Styling */
+        .panel-section {
+            border: 1px solid var(--term-border);
+            background: rgba(0, 20, 0, 0.4);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .panel-heading {
+            background: var(--term-border);
+            color: var(--term-green);
+            padding: 0.25rem 0.5rem;
+            margin: -1rem -1rem 1rem -1rem;
+            font-size: 1.25rem;
+            text-shadow: 0 0 5px var(--term-green);
+        }
+
+        /* Buttons */
+        .btn {
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .btn:hover:not(:disabled), .btn:active:not(:disabled) {
+            background-color: var(--term-green);
+            color: var(--term-dark);
+            box-shadow: 0 0 15px var(--term-green);
+        }
+        .btn:disabled {
+            border-color: #333;
+            color: #555;
+            cursor: not-allowed;
+            background: #111;
+        }
+    </style>
+</head>
+<body class="flex flex-col crt-flicker">
+
+    <header class="p-4 md:p-8 border-b-2 border-green-900 text-center md:text-left bg-black">
+        <h1 class="text-3xl md:text-6xl font-bold glitch-text uppercase tracking-widest" data-text="IMG_CORRUPTOR_V2.1.exe">IMG_CORRUPTOR_V2.1.exe</h1>
+        <div class="flex flex-col md:flex-row justify-between items-center mt-2">
+            <p class="text-green-700 text-lg md:text-xl">// PROTOCOL: UNRESTRICTED_DAMAGE_AUTHORIZED</p>
+            <p class="text-red-500 animate-pulse mt-1 md:mt-0 text-sm md:text-lg">[ SAFETY PROTOCOLS NULLIFIED ]</p>
+        </div>
+    </header>
+
+    <main class="flex-grow w-full max-w-[1800px] mx-auto p-4 flex flex-col lg:flex-row-reverse gap-6 items-start">
+        
+        <!-- Right Panel (Desktop) / Top Panel (Mobile): Display -->
+        <div class="w-full lg:w-7/12 xl:w-8/12 flex flex-col sticky top-0 z-40 bg-black/95 backdrop-blur-md pb-4 pt-2 lg:pt-0 border-b-2 border-green-900 lg:border-none shadow-[0_10px_30px_rgba(0,0,0,0.8)] lg:shadow-none">
+            <div class="border-2 border-green-900 bg-black p-1 flex-grow h-[35vh] lg:h-[75vh] flex items-center justify-center relative shadow-[0_0_30px_rgba(0,50,0,0.5)]">
+                <div class="canvas-container border-none shadow-none">
+                    <canvas id="preview"></canvas>
+                </div>
+                
+                <div id="placeholder" class="text-green-800 text-xl md:text-3xl animate-pulse text-center absolute px-4">
+                    [ SYSTEM IDLE - AWAITING DATA INPUT ]
+                </div>
+            </div>
+            <div id="statusMsg" class="text-green-400 text-sm md:text-lg hidden animate-pulse bg-black p-1 text-center border border-green-600 mt-2">
+                > OVERWRITING MEMORY BLOCKS...
+            </div>
+        </div>
+
+        <!-- Left Panel (Desktop) / Bottom Panel (Mobile): Controls -->
+        <div class="lg:w-5/12 xl:w-4/12 flex flex-col gap-4">
+            
+            <!-- Upload Section -->
+            <div class="border-2 border-dashed border-green-500 p-6 text-center hover:bg-green-900 hover:bg-opacity-20 transition-colors relative cursor-pointer group bg-black bg-opacity-50">
+                <input type="file" id="imageUpload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                <div class="text-xl md:text-2xl mb-2 group-hover:text-white transition-colors text-green-400">
+                    [ UPLOAD_TARGET_IMAGE ]
+                </div>
+                <p class="text-green-700 text-sm md:text-lg">JPG, PNG, WEBP</p>
+            </div>
+
+            <!-- SECTION 1: SPATIAL DISTORTION (NEW) -->
+            <div class="panel-section border-purple-900">
+                <h2 class="panel-heading !bg-purple-900 !text-purple-200">>> SPATIAL_DISTORTION</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Wave Warp (Sine Offset)</label>
+                            <span id="valWaveWarp" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="waveWarp" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Horizontal sine wave displacement</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Block Scramble</label>
+                            <span id="valBlockScramble" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="blockScramble" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Randomly relocates chunks of data</p>
+                    </div>
+                    <!-- NEW SPATIAL: VERTICAL MELT -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Gravity Melt</label>
+                            <span id="valMeltEffect" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="meltEffect" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Vertical data smearing</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: COMPRESSION DECAY -->
+            <div class="panel-section">
+                <h2 class="panel-heading">>> COMPRESSION_DECAY</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">JPEG Rot Passes</label>
+                            <span id="valJpegLoss" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="jpegLoss" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Extreme iterative generation loss</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Macroblock Errors</label>
+                            <span id="valMacroblocks" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="macroblocks" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">16x16 / 32x32 structural tearing</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Bit-Depth Crushing</label>
+                            <span id="valBanding" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="banding" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Force brutal color posterization</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Artifact Noise</label>
+                            <span id="valArtifactNoise" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="artifactNoise" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Amplified compression static</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: DATA CORRUPTION -->
+            <div class="panel-section border-red-900">
+                <h2 class="panel-heading !bg-red-900 !text-red-200">>> GLITCH_PROTOCOLS</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">RGB Channel Shift</label>
+                            <span id="valRgbShift" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="rgbShift" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Severe chromatic aberration</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Row Datamoshing</label>
+                            <span id="valRowTear" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="rowTear" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Horizontal memory leak tearing</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Color Memory Fault</label>
+                            <span id="valColorCorrupt" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="colorCorrupt" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Random hue inversion / solarization</p>
+                    </div>
+                    <!-- NEW CONTRAST NUKE -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Contrast Nuke</label>
+                            <span id="valContrastNuke" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="contrastNuke" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Blow out white and black levels</p>
+                    </div>
+                    <!-- NEW GLITCH: VHS TRACKING -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">VHS Tracking Loss</label>
+                            <span id="valVhsTracking" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="vhsTracking" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Analog tape desync and static</p>
+                    </div>
+                    <!-- NEW GLITCH: CHANNEL SWAP -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Logic Color Swap</label>
+                            <span id="valColorSwap" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="colorSwap" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Force RGB matrix re-assignment</p>
+                    </div>
+                    <!-- NEW GLITCH: ACID PHASE -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Acid Phase Shift</label>
+                            <span id="valAcidTrip" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="acidTrip" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Sine-wave color spectrum mutation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: SIGNAL OVERRIDE -->
+            <div class="panel-section border-blue-900">
+                <h2 class="panel-heading !bg-blue-900 !text-blue-200">>> SIGNAL_OVERRIDE</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Forced Downsample</label>
+                            <span id="valPixelate" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="pixelate" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Aggressive resolution scaling</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Saturation Overload</label>
+                            <span id="valSaturation" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="saturation" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Deep-fried color boosting</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Burn Scanlines</label>
+                            <span id="valScanlines" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="scanlines" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Hardcode CRT lines into image data</p>
+                    </div>
+                    <!-- NEW SIGNAL: EDGE BURN -->
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-sm md:text-md uppercase">Edge Burn Overlay</label>
+                            <span id="valEdgeBurn" class="text-green-400">0%</span>
+                        </div>
+                        <input type="range" id="edgeBurn" min="0" max="100" value="0">
+                        <p class="text-[10px] md:text-xs text-green-800">Aggressive mathematical sharpening</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-4 pb-8 text-center text-green-800 text-sm opacity-80">
+        <p>&copy; <span id="currentYear"></span> Muhammad Aqil Ismail. All rights reserved.</p>
+        <p class="text-xs mt-1">WARNING: Data loss is permanent.</p>
+    </footer>
+
+    <!-- Fixed Action Bar (Static at Bottom) -->
+    <div class="fixed bottom-0 left-0 w-full bg-black/95 backdrop-blur-sm border-t-2 border-green-900 p-3 z-50 shadow-[0_-10px_20px_rgba(0,0,0,0.8)]">
+        <div class="max-w-[1800px] mx-auto flex gap-2 md:gap-6 justify-center">
+            <button id="btnRandom" disabled class="btn flex-1 md:flex-none md:w-48 border border-yellow-500 py-2 md:py-3 text-xs md:text-xl text-yellow-500 bg-yellow-900 bg-opacity-20">
+                > RANDOMIZE
+            </button>
+            <button id="btnCorrupt" disabled class="btn flex-1 md:flex-none md:w-48 border border-green-500 py-2 md:py-3 text-xs md:text-xl bg-green-900 bg-opacity-20 text-green-400">
+                > EXECUTE
+            </button>
+            <button id="btnDownload" disabled class="btn flex-1 md:flex-none md:w-48 border border-blue-500 py-2 md:py-3 text-xs md:text-xl text-blue-500 bg-blue-900 bg-opacity-20">
+                > EXPORT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Set dynamic year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // DOM Elements
+        const canvas = document.getElementById('preview');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const imageUpload = document.getElementById('imageUpload');
+        const placeholder = document.getElementById('placeholder');
+        const btnCorrupt = document.getElementById('btnCorrupt');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnRandom = document.getElementById('btnRandom');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // All Sliders (Added new ones)
+        const sliders = [
+            'waveWarp', 'blockScramble', 'meltEffect', // Spatial
+            'jpegLoss', 'macroblocks', 'banding', 'artifactNoise', // Compression
+            'rgbShift', 'rowTear', 'colorCorrupt', 'contrastNuke', 'vhsTracking', 'colorSwap', 'acidTrip', // Glitch
+            'pixelate', 'saturation', 'scanlines', 'edgeBurn' // Signal
+        ];
+        
+        const settings = {};
+
+        // State
+        let originalImage = null;
+        let isProcessing = false;
+        
+        // Cap resolution for performance
+        const MAX_WIDTH = 1080; 
+
+        // Bind sliders
+        sliders.forEach(id => {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById('val' + id.charAt(0).toUpperCase() + id.slice(1));
+            
+            const updateVal = () => {
+                settings[id] = parseInt(el.value);
+                valEl.textContent = settings[id] + '%';
+            };
+            
+            el.addEventListener('input', () => {
+                updateVal();
+                clearTimeout(window.renderTimeout);
+                // Slight debounce for performance on mobile
+                window.renderTimeout = setTimeout(processImage, 350);
+            });
+            updateVal();
+        });
+
+        // Handle File Upload
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH) {
+                        const ratio = MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                        height = height * ratio;
+                    }
+
+                    originalImage = document.createElement('canvas');
+                    originalImage.width = width;
+                    originalImage.height = height;
+                    const oCtx = originalImage.getContext('2d');
+                    oCtx.fillStyle = '#000';
+                    oCtx.fillRect(0, 0, width, height);
+                    oCtx.drawImage(img, 0, 0, width, height);
+
+                    placeholder.classList.add('hidden');
+                    btnCorrupt.disabled = false;
+                    btnDownload.disabled = false;
+                    btnRandom.disabled = false;
+                    
+                    processImage();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        btnCorrupt.addEventListener('click', processImage);
+
+        btnRandom.addEventListener('click', () => {
+            if (!originalImage || isProcessing) return;
+            
+            sliders.forEach(id => {
+                const el = document.getElementById(id);
+                const valEl = document.getElementById('val' + id.charAt(0).toUpperCase() + id.slice(1));
+                
+                // 30% chance to leave a slider at 0 to create varied combinations
+                const randomVal = Math.random() > 0.3 ? Math.floor(Math.random() * 101) : 0;
+                
+                el.value = randomVal;
+                settings[id] = randomVal;
+                valEl.textContent = randomVal + '%';
+            });
+            
+            processImage();
+        });
+
+        // Helper for async image loading
+        function loadDataUrlToCanvas(dataUrl, targetCanvas, targetCtx, width, height) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    targetCtx.drawImage(img, 0, 0, width, height);
+                    resolve();
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        // Main Heavy Processing Loop
+        async function processImage() {
+            if (!originalImage || isProcessing) return;
+            isProcessing = true;
+            statusMsg.classList.remove('hidden');
+            
+            // Allow UI to update to "processing" state
+            await new Promise(r => setTimeout(r, 10)); 
+
+            const w = originalImage.width;
+            const h = originalImage.height;
+            
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(originalImage, 0, 0);
+
+            try {
+
+                // --- NEW 1: SPATIAL: Wave Warp ---
+                if (settings.waveWarp > 0) {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = w; tempCanvas.height = h;
+                    const tCtx = tempCanvas.getContext('2d');
+                    tCtx.drawImage(canvas, 0, 0);
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0,0,w,h);
+                    
+                    const freq = (settings.waveWarp / 100) * 0.1;
+                    const amp = (settings.waveWarp / 100) * (w * 0.1); // Shift up to 10% of width
+                    const offset = Math.random() * 100; // Randomize start phase
+                    
+                    for(let y = 0; y < h; y++) {
+                        const shiftX = Math.sin((y + offset) * freq) * amp;
+                        ctx.drawImage(tempCanvas, 0, y, w, 1, shiftX, y, w, 1);
+                        
+                        // Handle wrap around
+                        if (shiftX > 0) {
+                            ctx.drawImage(tempCanvas, w - shiftX, y, shiftX, 1, 0, y, shiftX, 1);
+                        } else if (shiftX < 0) {
+                            ctx.drawImage(tempCanvas, 0, y, -shiftX, 1, w + shiftX, y, -shiftX, 1);
+                        }
+                    }
+                }
+
+                // --- NEW 2: SPATIAL: Block Scramble ---
+                if (settings.blockScramble > 0) {
+                    // Max swaps depends on image size, up to ~200 swaps
+                    const numSwaps = Math.floor((settings.blockScramble / 100) * 150);
+                    const maxBlockSize = Math.max(20, Math.floor(w * 0.2)); // Up to 20% size blocks
+                    
+                    for(let i=0; i<numSwaps; i++) {
+                        const bSize = Math.max(10, Math.floor(Math.random() * maxBlockSize));
+                        
+                        const x1 = Math.floor(Math.random() * (w - bSize));
+                        const y1 = Math.floor(Math.random() * (h - bSize));
+                        const x2 = Math.floor(Math.random() * (w - bSize));
+                        const y2 = Math.floor(Math.random() * (h - bSize));
+                        
+                        // Get image data for both chunks
+                        const chunk1 = ctx.getImageData(x1, y1, bSize, bSize);
+                        const chunk2 = ctx.getImageData(x2, y2, bSize, bSize);
+                        
+                        // Swap them
+                        ctx.putImageData(chunk2, x1, y1);
+                        ctx.putImageData(chunk1, x2, y2);
+                    }
+                }
+
+                // --- NEW: SPATIAL: Gravity Melt ---
+                if (settings.meltEffect > 0) {
+                    const meltStrength = (settings.meltEffect / 100) * (h * 0.2); // stretch up to 20% of height
+                    const passes = Math.floor((settings.meltEffect / 100) * 800); // number of melt columns
+                    for(let i=0; i<passes; i++) {
+                        const px = Math.floor(Math.random()*w);
+                        const py = Math.floor(Math.random()*(h - meltStrength));
+                        const meltLen = Math.max(10, Math.floor(Math.random() * meltStrength));
+                        const width = Math.max(1, Math.floor(Math.random() * 5)); // 1 to 5 px wide
+                        ctx.drawImage(canvas, px, py, width, 1, px, py, width, meltLen);
+                    }
+                }
+
+                // 3. SIGNAL OVERRIDE: Pixelate
+                if (settings.pixelate > 0) {
+                    const scaleFactor = Math.max(0.01, 1 - (settings.pixelate / 100) * 0.98);
+                    const tempCanvas = document.createElement('canvas');
+                    const tw = Math.floor(w * scaleFactor) || 1;
+                    const th = Math.floor(h * scaleFactor) || 1;
+                    tempCanvas.width = tw; tempCanvas.height = th;
+                    const tCtx = tempCanvas.getContext('2d');
+                    
+                    tCtx.drawImage(canvas, 0, 0, tw, th);
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(tempCanvas, 0, 0, tw, th, 0, 0, w, h);
+                    ctx.imageSmoothingEnabled = true;
+                }
+
+                // 4. SIGNAL OVERRIDE: Saturation Overload
+                if (settings.saturation > 0) {
+                    const imgData = ctx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    const boost = 1 + (settings.saturation / 100) * 15;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i], g = data[i+1], b = data[i+2];
+                        const lum = 0.299*r + 0.587*g + 0.114*b;
+                        data[i]   = Math.min(255, Math.max(0, lum + (r - lum) * boost));
+                        data[i+1] = Math.min(255, Math.max(0, lum + (g - lum) * boost));
+                        data[i+2] = Math.min(255, Math.max(0, lum + (b - lum) * boost));
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+
+                // --- NEW: SIGNAL: Edge Burn ---
+                if (settings.edgeBurn > 0) {
+                    const temp = document.createElement('canvas');
+                    temp.width = w; temp.height = h;
+                    const tCtx = temp.getContext('2d');
+                    tCtx.drawImage(canvas, 0, 0);
+
+                    ctx.globalCompositeOperation = 'difference';
+                    const offset = Math.floor((settings.edgeBurn / 100) * 6) + 1;
+                    ctx.drawImage(temp, offset, offset);
+                    
+                    ctx.globalCompositeOperation = 'color-dodge'; // harsh burning
+                    ctx.drawImage(temp, 0, 0);
+                    ctx.globalCompositeOperation = 'source-over';
+                }
+
+                // --- NEW 3: GLITCH: Contrast Nuke ---
+                if (settings.contrastNuke > 0) {
+                    const imgData = ctx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    const contrastVal = (settings.contrastNuke / 100) * 200; // Super high contrast
+                    const factor = (259 * (contrastVal + 255)) / (255 * (259 - contrastVal));
+                    
+                    for(let i=0; i<data.length; i+=4) {
+                        data[i] = factor * (data[i] - 128) + 128;
+                        data[i+1] = factor * (data[i+1] - 128) + 128;
+                        data[i+2] = factor * (data[i+2] - 128) + 128;
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+
+                // --- NEW: GLITCH: Logic Color Swap ---
+                if (settings.colorSwap > 0) {
+                    const imgData = ctx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    // 0% = normal, >0 divides into 5 modes
+                    const mode = Math.ceil((settings.colorSwap / 100) * 5); 
+                    for(let i=0; i<data.length; i+=4) {
+                        const r = data[i], g=data[i+1], b=data[i+2];
+                        if(mode === 1) { data[i]=g; data[i+1]=b; data[i+2]=r; }
+                        else if(mode === 2) { data[i]=b; data[i+1]=r; data[i+2]=g; }
+                        else if(mode === 3) { data[i]=255-r; data[i+1]=g; data[i+2]=b; }
+                        else if(mode >= 4) { data[i]=r; data[i+1]=255-g; data[i+2]=255-b; }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+
+                // --- NEW: GLITCH: Acid Phase Shift ---
+                if (settings.acidTrip > 0) {
+                    const imgData = ctx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    const phase = (settings.acidTrip / 100) * Math.PI * 10; // Rapid phase cycling
+                    for(let i=0; i<data.length; i+=4) {
+                        data[i]   = Math.abs(Math.sin(data[i]*0.01 + phase)) * 255;
+                        data[i+1] = Math.abs(Math.sin(data[i+1]*0.01 + phase + 1)) * 255;
+                        data[i+2] = Math.abs(Math.sin(data[i+2]*0.01 + phase + 2)) * 255;
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+
+                // --- NEW: GLITCH: VHS Tracking Loss ---
+                if (settings.vhsTracking > 0) {
+                    const intensity = settings.vhsTracking / 100;
+                    const numTears = Math.floor(intensity * 15);
+                    for(let i=0; i<numTears; i++) {
+                        const trackH = Math.max(2, Math.floor(Math.random() * h * 0.15 * intensity));
+                        const trackY = Math.floor(Math.random() * (h - trackH));
+                        const shiftX = Math.floor((Math.random()-0.5) * w * 0.3 * intensity);
+                        
+                        // Shift row
+                        ctx.drawImage(canvas, 0, trackY, w, trackH, shiftX, trackY, w, trackH);
+                        // Wrap around
+                        if (shiftX > 0) ctx.drawImage(canvas, w-shiftX, trackY, shiftX, trackH, 0, trackY, shiftX, trackH);
+                        else if (shiftX < 0) ctx.drawImage(canvas, 0, trackY, -shiftX, trackH, w+shiftX, trackY, -shiftX, trackH);
+                        
+                        // Add static noise strictly inside the tear
+                        const tearData = ctx.getImageData(0, trackY, w, trackH);
+                        for(let j=0; j<tearData.data.length; j+=4) {
+                            if(Math.random() < (0.2 * intensity)) {
+                                const noise = Math.random() > 0.5 ? 255 : 0;
+                                tearData.data[j] = noise;
+                                tearData.data[j+1] = noise;
+                                tearData.data[j+2] = noise;
+                            }
+                        }
+                        ctx.putImageData(tearData, 0, trackY);
+                    }
+                }
+
+                // 11. COMPRESSION DECAY: Artifact Noise
+                if (settings.artifactNoise > 0) {
+                    const imgData = ctx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    const noiseAmount = settings.artifactNoise * 1.5;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (Math.random() > 0.4) {
+                            const mod = (Math.random() - 0.5) * noiseAmount;
+                            data[i] = Math.min(255, Math.max(0, data[i] + mod));
+                            data[i+1] = Math.min(255, Math.max(0, data[i+1] + mod));
+                            data[i+2] = Math.min(255, Math.max(0, data[i+2] + mod));
+                        }
+                    }
+                    ctx.putImageData(imgData, 0, 0);
+                }
+
+                // 12. SIGNAL OVERRIDE: Burn Scanlines
+                if (settings.scanlines > 0) {
+                    const intensity = settings.scanlines / 100;
+                    ctx.fillStyle = `rgba(0, 0, 0, ${intensity * 0.8})`;
+                    for(let y=0; y<h; y+=3) {
+                        ctx.fillRect(0, y, w, 1);
+                    }
+                }
+
+            } catch (err) {
+                console.error("FATAL KERNEL ERROR:", err);
+            }
+
+            isProcessing = false;
+            statusMsg.classList.add('hidden');
+        }
+
+        // Handle Download
+        btnDownload.addEventListener('click', () => {
+            if (!originalImage) return;
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            
+            const link = document.createElement('a');
+            link.download = `IMG_FATAL_ERR_${Math.floor(Math.random()*999999)}.jpg`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    </script>
+</body>
+</html>
